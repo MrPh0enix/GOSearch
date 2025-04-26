@@ -3,28 +3,30 @@ package main
 import (
 	"net/http"
 
+	"github.com/MrPh0enix/GOSearch/search"
 	"github.com/gin-gonic/gin"
 )
 
-type book struct {
-	ID       string `json:"id"`
-	Title    string `json:"title"`
-	Author   string `json:"author"`
-	Quantity int    `json:"quantity"`
+type query struct {
+	Query string `json:"query"`
 }
 
-var books = []book{
-	{ID: "1", Title: "In Search of Lost Time", Author: "Marcel Proust", Quantity: 2},
-	{ID: "2", Title: "The Great Gatsby", Author: "F. Scott Fitzgerald", Quantity: 5},
-	{ID: "3", Title: "War and Peace", Author: "Leo Tolstoy", Quantity: 6},
-}
+func findSimilar(c *gin.Context) {
+	var inputQuery query
 
-func getBooks(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, books)
+	if err := c.BindJSON(&inputQuery); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	result := search.MostSimilar(inputQuery.Query)
+
+	c.IndentedJSON(http.StatusOK, result)
+
 }
 
 func main() {
 	router := gin.Default()
-	router.GET("/books", getBooks)
+	router.POST("/calc-similar", findSimilar)
 	router.Run("localhost:8080")
 }
