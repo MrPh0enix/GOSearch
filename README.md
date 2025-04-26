@@ -1,1 +1,1 @@
-Basic Go web app
+TfIdf Search api for Go.
