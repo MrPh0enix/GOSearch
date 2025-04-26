@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/MrPh0enix/YOLO-GO/search"
+	"github.com/MrPh0enix/GOSearch/search"
 	"github.com/gin-gonic/gin"
 )
 

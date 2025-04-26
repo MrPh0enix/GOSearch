@@ -1,4 +1,4 @@
-module github.com/MrPh0enix/YOLO-GO
+module github.com/MrPh0enix/GOSearch
 
 go 1.24.2
 
