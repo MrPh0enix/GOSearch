@@ -4,23 +4,11 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/james-bowman/nlp"
 	"github.com/james-bowman/nlp/measures/pairwise"
 	"gonum.org/v1/gonum/mat"
 )
 
-func TfIdfSearch(corpus []string, query string, result *[]string) {
-	vectoriser := nlp.NewCountVectoriser()
-	tfIdf := nlp.NewTfidfTransformer()
-	reducer := nlp.NewTruncatedSVD(100) //Reduce to 100 features
-	pipeline := nlp.NewPipeline(vectoriser, tfIdf, reducer)
-
-	// Fit the data
-	matrix, err := pipeline.FitTransform(corpus...)
-	if err != nil {
-		fmt.Printf("Failed to process documents because %v", err)
-		return
-	}
+func TfIdfSearch(query string, result *[]string) {
 
 	// Convert query to vector
 	queryVector, err := pipeline.Transform(query)
@@ -57,14 +45,8 @@ func TfIdfSearch(corpus []string, query string, result *[]string) {
 }
 
 func MostSimilar(query string) []string {
-	docs := []string{
-		"The cat sat on the mat",
-		"A dog chased the cat",
-		"Birds fly high in the blue sky",
-		"The quick brown fox jumps over the lazy dog",
-	}
 
 	var result []string
-	TfIdfSearch(docs, query, &result)
+	TfIdfSearch(query, &result)
 	return result
 }
