@@ -2,53 +2,69 @@ package search
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/james-bowman/nlp"
 	"github.com/james-bowman/nlp/measures/pairwise"
 	"gonum.org/v1/gonum/mat"
 )
 
-func TfIdfSearch(corpus []string, query string, result *string) {
+func TfIdfSearch(corpus []string, query string, result *[]string) {
 	vectoriser := nlp.NewCountVectoriser()
 	tfIdf := nlp.NewTfidfTransformer()
 	reducer := nlp.NewTruncatedSVD(100) //Reduce to 100 features
 	pipeline := nlp.NewPipeline(vectoriser, tfIdf, reducer)
 
+	// Fit the data
 	matrix, err := pipeline.FitTransform(corpus...)
 	if err != nil {
 		fmt.Printf("Failed to process documents because %v", err)
 		return
 	}
 
+	// Convert query to vector
 	queryVector, err := pipeline.Transform(query)
 	if err != nil {
 		fmt.Printf("Failed to process documents because %v", err)
 		return
 	}
 
-	highestSimilarity := -1.0
-	var highIdx int
+	// calculate and store similarity
+	type scoredSentence struct {
+		sentence string
+		score    float64
+	}
+	var scoredDocs []scoredSentence
 	_, docs := matrix.Dims() // Columns represent the documents in the corpus
 	for i := 0; i < docs; i++ {
 		similarity := pairwise.CosineSimilarity(queryVector.(mat.ColViewer).ColView(0), matrix.(mat.ColViewer).ColView(i))
-		if similarity > highestSimilarity {
-			highIdx = i
-			highestSimilarity = similarity
-		}
+		scoredDocs = append(scoredDocs, scoredSentence{corpus[i], similarity})
 	}
 
-	*result = corpus[highIdx]
+	// Sort by highest score
+	sort.Slice(scoredDocs, func(i, j int) bool {
+		return scoredDocs[i].score > scoredDocs[j].score
+	})
+
+	// take top 2 results
+	for _, doc := range scoredDocs {
+		if len(*result) == 10 {
+			break
+		}
+		*result = append(*result, doc.sentence)
+	}
+
 }
 
-func MostSimilar(query string) string {
+func MostSimilar(query string) []string {
 	docs := []string{
-		"the quick brown fox jumped over the lazy dog",
-		"the quick brown fox",
-		"the dog jumped over the quick fox",
+		"The cat sat on the mat",
+		"A dog chased the cat",
+		"Birds fly high in the blue sky",
+		"The quick brown fox jumps over the lazy dog",
 	}
 
-	// query := "the brown fox ran around the dog"
-	var result string
+	var result []string
 	TfIdfSearch(docs, query, &result)
 	return result
 }
