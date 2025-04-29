@@ -17,6 +17,9 @@ func TfIdfSearch(query string, result *[]string) {
 		return
 	}
 
+	// fmt.Println(queryVector)
+	fmt.Printf("Matrix:\n%v\n", mat.Formatted(queryVector, mat.Prefix("       "), mat.Squeeze()))
+
 	// calculate and store similarity
 	type scoredSentence struct {
 		sentence string
