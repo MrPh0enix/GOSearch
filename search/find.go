@@ -17,8 +17,32 @@ func TfIdfSearch(query string, result *[]string) {
 		return
 	}
 
-	// fmt.Println(queryVector)
-	fmt.Printf("Matrix:\n%v\n", mat.Formatted(queryVector, mat.Prefix("       "), mat.Squeeze()))
+	wordPriority, err := pipelineWordPriority.Transform(query)
+	if err != nil {
+		fmt.Printf("Failed to process documents because %v", err)
+		return
+	}
+	fmt.Printf("Matrix:\n%v\n", mat.Formatted(wordPriority))
+
+	vocab := vectoriser.Vocabulary
+	reverseVocab := make(map[int]string)
+	for word, id := range vocab {
+		reverseVocab[id] = word
+	}
+	fmt.Println(vocab)
+
+	// Find the max value
+	rows, _ := wordPriority.Dims()
+	maxVal := wordPriority.At(0, 0)
+	maxRow := 0
+	for i := 1; i < rows; i++ {
+		val := wordPriority.At(i, 0)
+		if val > maxVal {
+			maxVal = val
+			maxRow = i
+		}
+	}
+	fmt.Printf("Max value: %.2f at row %d\n", maxVal, maxRow)
 
 	// calculate and store similarity
 	type scoredSentence struct {
@@ -39,7 +63,8 @@ func TfIdfSearch(query string, result *[]string) {
 
 	// take top 2 results
 	for _, doc := range scoredDocs {
-		if len(*result) == 10 {
+
+		if len(*result) == 1 {
 			break
 		}
 		*result = append(*result, doc.sentence)
@@ -52,4 +77,5 @@ func MostSimilar(query string) []string {
 	var result []string
 	TfIdfSearch(query, &result)
 	return result
+
 }
