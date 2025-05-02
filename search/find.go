@@ -17,19 +17,13 @@ func TfIdfSearch(query string, result *[]string) {
 		return
 	}
 
+	// ray tfidf output to to get most significant word
 	wordPriority, err := pipelineWordPriority.Transform(query)
 	if err != nil {
 		fmt.Printf("Failed to process documents because %v", err)
 		return
 	}
 	fmt.Printf("Matrix:\n%v\n", mat.Formatted(wordPriority))
-
-	vocab := vectoriser.Vocabulary
-	reverseVocab := make(map[int]string)
-	for word, id := range vocab {
-		reverseVocab[id] = word
-	}
-	fmt.Println(vocab)
 
 	// Find the max value
 	rows, _ := wordPriority.Dims()
@@ -44,16 +38,31 @@ func TfIdfSearch(query string, result *[]string) {
 	}
 	fmt.Printf("Max value: %.2f at row %d\n", maxVal, maxRow)
 
+	// reverse the vocab to id : word
+	vocab := vectoriser.Vocabulary
+	reverseVocab := make(map[int]string)
+	for word, id := range vocab {
+		reverseVocab[id] = word
+	}
+	fmt.Println(vocab)
+
+	// get top word
+	topWord := reverseVocab[maxRow]
+	fmt.Println(topWord)
+
+	//docs for top word
+	docsToTest := keywordIdMap[topWord]
+	fmt.Println(docsToTest)
+
 	// calculate and store similarity
 	type scoredSentence struct {
 		sentence string
 		score    float64
 	}
 	var scoredDocs []scoredSentence
-	_, docs := matrix.Dims() // Columns represent the documents in the corpus
-	for i := 0; i < docs; i++ {
-		similarity := pairwise.CosineSimilarity(queryVector.(mat.ColViewer).ColView(0), matrix.(mat.ColViewer).ColView(i))
-		scoredDocs = append(scoredDocs, scoredSentence{corpus[i], similarity})
+	for _, val := range docsToTest {
+		similarity := pairwise.CosineSimilarity(queryVector.(mat.ColViewer).ColView(0), matrix.(mat.ColViewer).ColView(val))
+		scoredDocs = append(scoredDocs, scoredSentence{corpus[val], similarity})
 	}
 
 	// Sort by highest score
@@ -64,7 +73,7 @@ func TfIdfSearch(query string, result *[]string) {
 	// take top 2 results
 	for _, doc := range scoredDocs {
 
-		if len(*result) == 1 {
+		if len(*result) == 2 {
 			break
 		}
 		*result = append(*result, doc.sentence)
