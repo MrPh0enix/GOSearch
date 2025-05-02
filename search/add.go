@@ -25,16 +25,27 @@ func init() {
 	pipeline = nlp.NewPipeline(vectoriser, tfIdf, reducer)
 	pipelineWordPriority = nlp.NewPipeline(vectoriser, tfIdf)
 
-	// example docs, delete after testing
-	var exampleDocs = []string{
-		"The cat sat on the mat",
-		"A dog chased the cat",
-		"Birds fly high in the blue sky",
-		"The quick brown fox jumps over the lazy dog",
+	exampleDocs := loadExamples()
+
+	// keyword ID map for example docs
+	for i, exampleDoc := range *exampleDocs {
+
+		corpus = append(corpus, exampleDoc)
+
+		cleanDoc := stopwords.CleanString(exampleDoc, "en", false)
+		cleanDocLis := strings.Fields(cleanDoc)
+
+		for _, wrd := range cleanDocLis {
+			keywordIdMap[wrd] = append(keywordIdMap[wrd], i)
+		}
 	}
 
-	for _, doc := range exampleDocs {
-		AddDoc(doc)
+	// Fit the example data
+	var err error
+	matrix, err = pipeline.FitTransform(corpus...)
+	if err != nil {
+		fmt.Printf("Failed to process documents because %v", err)
+		return
 	}
 
 }
