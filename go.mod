@@ -3,6 +3,7 @@ module github.com/MrPh0enix/GOSearch
 go 1.24.2
 
 require (
+	github.com/bbalet/stopwords v1.0.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/james-bowman/nlp v0.0.0-20210511120306-26d441fa0ded
 	gonum.org/v1/gonum v0.16.0
